@@ -1,6 +1,6 @@
-import mysql.connector as my
-import tkinter as tk
-from tkinter import messagebox
+import mysql.connector as my                           #  +-------------------+
+import tkinter as tk                                   #  |  Tejas' Codes :)  |
+from tkinter import messagebox                         #  +-------------------+
 from tabulate import tabulate
 
 def init():
@@ -14,7 +14,7 @@ def init():
     try:
         conn = my.connect(host="localhost", user="root", password="tejas123", database=database)
         cursor = conn.cursor()
-        print("Success", "Connection Successful!")
+        print("Connection Successful!")
         parse(conn, cursor)
     
     except my.Error as e:

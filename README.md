@@ -7,7 +7,7 @@
 <details>
 <summary>View More</summary>
   
-| Databse Connected |
+| Database Connected |
 |-|
 | ![](https://github.com/multiverseweb/nlp-to-sql/blob/main/documentation/images/success.png?raw=true) |
 

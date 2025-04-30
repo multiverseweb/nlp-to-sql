@@ -64,11 +64,11 @@ class SQLApp:
     def setup_ui(self):
 
         # Top bar
-        topbar = tk.Frame(self.root, bg="black", height=30)
+        topbar = tk.Frame(self.root, bg="black", height=50)
         topbar.pack(fill=tk.X, side=tk.TOP)
         # Load and display logo
         logo_img = Image.open("app/resources/logo.png")
-        logo_img = logo_img.resize((int(logo_img.width * (30 / logo_img.height)), 30), Image.Resampling.LANCZOS)
+        logo_img = logo_img.resize((int(logo_img.width * (50 / logo_img.height)), 50), Image.Resampling.LANCZOS)
         self.logo_photo = ImageTk.PhotoImage(logo_img)
 
         logo_label = tk.Label(topbar, image=self.logo_photo, bg="#111")

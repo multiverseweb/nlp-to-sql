@@ -1,17 +1,17 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import messagebox
-from tkinter import Canvas
-import mysql.connector as my
-import os
+from tkinter import messagebox                                          #   +-------------------+
+from tkinter import Canvas                                              #   |  Tejas Codes :D   |
+import mysql.connector as my                                            #   |   30-04-2025      |
+import os                                                               #   +-------------------+
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 from matplotlib import cm
 from matplotlib.colors import Normalize
 from PIL import Image, ImageTk
+from setup import *                                                  # user defined module
 
-RUNS_FILE = 'app/data/runs.txt'
 
 def update_runs():
     try:
@@ -57,7 +57,7 @@ class SQLApp:
         self.version = "v1.0"
         self.run = f"Run {update_runs()}"
         self.status_color = "yellow"
-        self.status_text = "Running"
+        self.status_text = "Banana"
 
         self.setup_ui()
 
@@ -78,11 +78,15 @@ class SQLApp:
 
     def setup_ui(self):
 
+        def destroy_guide(event):
+            if guide.winfo_exists():
+                guide.destroy()
+
         # Top bar
         topbar = tk.Frame(self.root, bg="black", height=50)
         topbar.pack(fill=tk.X, side=tk.TOP)
         # Load and display logo
-        logo_img = Image.open("app/resources/logo.png")
+        logo_img = Image.open(logo)
         logo_img = logo_img.resize((int(logo_img.width * (50 / logo_img.height)), 50), Image.Resampling.LANCZOS)
         self.logo_photo = ImageTk.PhotoImage(logo_img)
 
@@ -118,9 +122,13 @@ class SQLApp:
         tk.Label(input_frame, text="Database", bg="black", fg="white", font=("Consolas", 10)).grid(row=1, column=2, padx=5, sticky="w")
         self.db_entry = tk.Entry(input_frame, fg="white", bg="#111", insertbackground='white')
         self.db_entry.grid(row=1, column=3, padx=5)
+        self.db_entry.bind("<FocusIn>", destroy_guide)
 
-        self.train_btn = tk.Button(input_frame, text="Train", command=self.connect_and_parse, bg="#222", fg="white", font=("Consolas", 10), bd=0)
-        self.train_btn.grid(row=0, column=4, rowspan=2, padx=10)
+        guide=tk.Label(input_frame, text="<----------------------- Start here :D", bg="black", fg="white", font=("Consolas", 10))
+        guide.grid(row=1, column=4, padx=5, sticky="w")
+
+        self.train_btn = tk.Button(input_frame, text="Train Infinity", command=self.connect_and_parse, bg="#222", fg="white", font=("Consolas", 10), bd=0)
+        self.train_btn.grid(row=0, column=4, rowspan=1, padx=10, sticky="w")
 
         # Main container frame
         main_frame = tk.Frame(self.root, bg="black")
@@ -139,7 +147,7 @@ class SQLApp:
                                 bd=0, highlightbackground="gray", highlightcolor="gray", highlightthickness=1)
         self.schema_area.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        self.schema_gif = GIFPlayer(left_frame, "app/resources/loading.gif")
+        self.schema_gif = GIFPlayer(left_frame, place_holder_gif)
         self.schema_gif.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         # Terminal Frame in top-right
@@ -147,15 +155,17 @@ class SQLApp:
                                 bd=0, highlightbackground="gray", highlightcolor="gray", highlightthickness=1)
         self.terminal.pack(fill=tk.BOTH, expand=True, padx=10, pady=(10, 5))
 
-        self.terminal_gif = GIFPlayer(right_frame, "app/resources/loading.gif")
+        self.terminal_gif = GIFPlayer(right_frame, place_holder_gif)
         self.terminal_gif.place(relx=0.5, rely=0.25, anchor=tk.CENTER)  # Adjust vertically if needed
 
         # Bar Graph Frame in bottom-right
-        self.graph_frame = tk.Frame(right_frame, bg="#111", highlightbackground="gray", highlightthickness=1, height=300)
+        self.graph_frame = tk.Frame(right_frame, bg="#111", highlightbackground="gray", highlightthickness=1, height=150)
         self.graph_frame.pack(fill=tk.X, expand=False, padx=10, pady=(5, 10))
 
-        self.graph_gif = GIFPlayer(self.graph_frame, "app/resources/loading.gif")
+        self.graph_gif = GIFPlayer(self.graph_frame, place_holder_gif)
         self.graph_gif.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+        self.terminal.insert(tk.END, " 🍌_", "prompt")
+        self.terminal.insert(tk.END, "Write SQL or Banana Prompts here...\n", "info")
 
 
 
@@ -172,13 +182,12 @@ class SQLApp:
         return entry
 
     def connect_and_parse(self):
+        self.terminal.insert(tk.END, " 🍌_", "prompt")
         host = self.host_entry.get()
         user = self.user_entry.get()
         password = self.pass_entry.get()
         database = self.db_entry.get()
-        self.terminal.tag_config("prompt", foreground="yellow")
-# Insert the prompt with the tag applied₹
-        self.terminal.insert(tk.END, " 🍌_", "prompt")
+        self.terminal_gif.destroy()
 
         try:
             conn = my.connect(host=host, user=user, password=password, database=database)
@@ -186,11 +195,16 @@ class SQLApp:
             self.status_color = "green"
             self.status_text = "Connected"
             self.status_label.config(bg=self.status_color, text=self.status_text)
-            if cursor:
-                self.schema_gif.destroy()
-                self.terminal_gif.destroy()
-                self.graph_gif.destroy()
-                self.terminal.insert(tk.END, "Connection Successful!\n")
+            if conn.is_connected():
+                cursor.execute("SELECT DATABASE();")  # This will fail if DB doesn't exist
+                db = cursor.fetchone()
+                if db and db[0] == database:
+                    self.schema_gif.destroy()
+                    self.graph_gif.destroy()
+                    self.terminal.insert(tk.END, "Connection Successful!\n", "success")
+                else:
+                    pass
+                
             self.show_schema(cursor)
             cursor.close()
             conn.close()
@@ -198,8 +212,8 @@ class SQLApp:
             self.status_color = "red"
             self.status_text = "Failed"
             self.status_label.config(bg=self.status_color, text=self.status_text)
-            self.terminal.insert(tk.END, f"Database Connection Failed!\n{e}\n")
-        self.terminal.insert(tk.END, " 🍌_", "prompt")
+            self.terminal.insert(tk.END, f"Database Connection Failed!\n\t> {e}\n", "error")
+        self.terminal.see(tk.END)  
 
     def show_schema(self, cursor):
         cursor.execute("SHOW TABLES")
@@ -229,7 +243,7 @@ class SQLApp:
         for widget in self.graph_frame.winfo_children():
             widget.destroy()
 
-        fig, ax = plt.subplots(figsize=(5.5, 5), dpi=100)
+        fig, ax = plt.subplots(figsize=(5.5, 2), dpi=100)
         fig.patch.set_facecolor('#111')  # Set figure background
         ax.set_facecolor('#111')         # Set axes background
 
@@ -275,4 +289,7 @@ class SQLApp:
 if __name__ == '__main__':
     root = tk.Tk()
     app = SQLApp(root)
+# =================================================================================================== Set the terminal colors
+    for _ in prompt_colors:
+            app.terminal.tag_config(_, foreground=prompt_colors[_])
     root.mainloop()

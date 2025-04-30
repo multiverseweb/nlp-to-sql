@@ -1,0 +1,5 @@
+tk
+mysql-connector-python
+matplotlib
+tabulate
+Pillow

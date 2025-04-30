@@ -61,6 +61,21 @@ class SQLApp:
 
         self.setup_ui()
 
+    def add_table(self, text):
+        label = tk.Label(self.schema_area, text=text, bg="#111", bd=0, relief="raised", font=("Courier", 8), justify="left",fg="white")
+        label_window = self.schema_area.create_window(50, 50, window=label, anchor="nw")
+
+        def on_drag_start(event, lbl=label, win=label_window):
+            lbl._drag_data = {"x": event.x, "y": event.y}
+
+        def on_drag_motion(event, lbl=label, win=label_window):
+            dx = event.x - lbl._drag_data["x"]
+            dy = event.y - lbl._drag_data["y"]
+            self.schema_area.move(win, dx, dy)
+
+        label.bind("<Button-1>", on_drag_start)
+        label.bind("<B1-Motion>", on_drag_motion)
+
     def setup_ui(self):
 
         # Top bar
@@ -120,10 +135,10 @@ class SQLApp:
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
 # Schema Frame in left
-        self.schema_area = tk.Text(left_frame, bg="#111", fg="white", font=("Consolas", 10),
+        self.schema_area = tk.Canvas(left_frame, bg="#111",
                                 bd=0, highlightbackground="gray", highlightcolor="gray", highlightthickness=1)
         self.schema_area.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
+        
         self.schema_gif = GIFPlayer(left_frame, "app/resources/loading.gif")
         self.schema_gif.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
@@ -184,11 +199,12 @@ class SQLApp:
             self.status_text = "Failed"
             self.status_label.config(bg=self.status_color, text=self.status_text)
             self.terminal.insert(tk.END, f"Database Connection Failed!\n{e}\n")
+        self.terminal.insert(tk.END, " 🍌_", "prompt")
 
     def show_schema(self, cursor):
         cursor.execute("SHOW TABLES")
         tables = cursor.fetchall()
-        self.schema_area.delete(1.0, tk.END)
+        self.schema_area.delete("all")  # Clear previous schema
 
         bar_data_columns = {}
         bar_data_rows = {}
@@ -196,7 +212,8 @@ class SQLApp:
         for table in tables:
             cursor.execute("DESCRIBE " + table[0])
             columns = cursor.fetchall()
-            self.schema_area.insert(tk.END, f"\nSchema of {table[0]}\n{tabulate(columns, headers=['Field', 'Type', 'Null', 'Key', 'Default', 'Extra'], tablefmt='pretty')}\n\n")
+            dashes="-" * (len(table[0]) + 2)
+            self.add_table(f"+---------{dashes}-+\n| Schema of {table[0]} |\n{tabulate(columns, headers=['Field', 'Type', 'Null', 'Key', 'Default', 'Extra'], tablefmt='pretty')}")
             
             # Fetch the number of rows in the table
             cursor.execute(f"SELECT COUNT(*) FROM {table[0]}")
@@ -255,7 +272,6 @@ class SQLApp:
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-        
 if __name__ == '__main__':
     root = tk.Tk()
     app = SQLApp(root)

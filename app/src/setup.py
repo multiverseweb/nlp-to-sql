@@ -10,7 +10,7 @@ place_holder_gif="app/resources/loading.gif"      #                             
 #------------------------------------------------------------------------------------+
 
 # The default colors for terminal
-prompt_colors={"prompt":"yellow","success":"lime","error":"red","info":"cyan"}
+prompt_colors={"prompt":"yellow","success":"lime","error":"red","info":"cyan","warning":"orange","normal":"white"}
 
 import tkinter as tk
 from tkinter import messagebox

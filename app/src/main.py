@@ -12,6 +12,21 @@ from matplotlib.colors import Normalize
 from PIL import Image, ImageTk
 from setup import *                                                  # user defined module
 
+#==========================================================================================================#
+
+banner='''
+====================================================================================
+=====  ====================================================  ============  ==  =====
+=====  ====================================================  ============  ==  =====
+=====  ====================================================  ============  ==  =====
+=====  ======   ===  = ====   ===  = ====   =========   ===  ======   ===  ==  =====
+=====    ===  =  ==     ==  =  ==     ==  =  =======  =  ==    ===  =  ==  ==  =====
+=====  =  =====  ==  =  =====  ==  =  =====  ========  ====  =  ==     ==  ==  =====
+=====  =  ===    ==  =  ===    ==  =  ===    =========  ===  =  ==  =====  ==  =====
+=====  =  ==  =  ==  =  ==  =  ==  =  ==  =  =======  =  ==  =  ==  =  ==  ==  =====
+=====    ====    ==  =  ===    ==  =  ===    ========   ===  =  ===   ===  ==  =====
+====================================================================================
+'''
 
 def update_runs():
     try:
@@ -160,7 +175,7 @@ class SQLApp:
         self.user_terminal.pack(fill=tk.BOTH, expand=True, padx=10, pady=(10, 5))
 
         self.terminal_gif = GIFPlayer(right_frame, place_holder_gif)
-        self.terminal_gif.place(relx=0.5, rely=0.25, anchor=tk.CENTER)  # Adjust vertically if needed
+        self.terminal_gif.place(relx=0.5, rely=0.55, anchor=tk.CENTER)  # Adjust vertically if needed
 
         # Bar Graph Frame in bottom-right
         self.graph_frame = tk.Frame(right_frame, bg="#111", highlightbackground="gray", highlightthickness=1, height=150)
@@ -170,7 +185,13 @@ class SQLApp:
         self.graph_gif.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         unlock_terminal(self)
         self.terminal.insert(tk.END, "🍌_", "prompt")
-        self.terminal.insert(tk.END, "Banana logs appear here...\n", "info")
+        self.terminal.insert(tk.END, "Banana logs appear here... (Read-only)\n", "info")
+        self.terminal.insert(tk.END, f"{banner}\n", "normal")
+        self.terminal.insert(tk.END, "Prompt\t", "prompt")
+        self.terminal.insert(tk.END, "Success\t", "success")
+        self.terminal.insert(tk.END, "Error\t", "error")
+        self.terminal.insert(tk.END, "Info\t", "info")
+        self.terminal.insert(tk.END, "Warning\n", "warning")
         lock_terminal(self)
         self.user_terminal.insert(tk.END, "🍌_", "prompt")
         self.user_terminal.insert(tk.END, "Write SQL or Banana prompts here...\n", "info")

@@ -77,7 +77,6 @@ class SQLApp:
         label.bind("<B1-Motion>", on_drag_motion)
 
     def setup_ui(self):
-
         def destroy_guide(event):
             if guide.winfo_exists():
                 guide.destroy()
@@ -106,21 +105,22 @@ class SQLApp:
         # Input Entries
         tk.Label(input_frame, text="Host", bg="black", fg="white", font=("Consolas", 10)).grid(row=0, column=0, padx=5, sticky="w")
         self.host_entry = tk.Entry(input_frame, fg="white", bg="#111", insertbackground='white')
-        self.host_entry.insert(0, "localhost")
+        self.host_entry.insert(0, host)
         self.host_entry.grid(row=0, column=1, padx=5)
 
         tk.Label(input_frame, text="User", bg="black", fg="white", font=("Consolas", 10)).grid(row=0, column=2, padx=5, sticky="w")
         self.user_entry = tk.Entry(input_frame, fg="white", bg="#111", insertbackground='white')
-        self.user_entry.insert(0, "root")
+        self.user_entry.insert(0, user)
         self.user_entry.grid(row=0, column=3, padx=5)
 
         tk.Label(input_frame, text="Password", bg="black", fg="white", font=("Consolas", 10)).grid(row=1, column=0, padx=5, sticky="w")
         self.pass_entry = tk.Entry(input_frame, fg="white", bg="#111", insertbackground='white', show="*")
-        self.pass_entry.insert(0, "tejas123")
+        self.pass_entry.insert(0, pwd)
         self.pass_entry.grid(row=1, column=1, padx=5)
 
         tk.Label(input_frame, text="Database", bg="black", fg="white", font=("Consolas", 10)).grid(row=1, column=2, padx=5, sticky="w")
         self.db_entry = tk.Entry(input_frame, fg="white", bg="#111", insertbackground='white')
+        self.db_entry.insert(0, database)
         self.db_entry.grid(row=1, column=3, padx=5)
         self.db_entry.bind("<FocusIn>", destroy_guide)
 
@@ -152,8 +152,12 @@ class SQLApp:
 
         # Terminal Frame in top-right
         self.terminal = tk.Text(right_frame, bg="#111", fg="white", font=("Consolas", 10), height=1,
-                                bd=0, highlightbackground="gray", highlightcolor="gray", highlightthickness=1)
+                                bd=0, highlightbackground="gray", highlightcolor="gray", highlightthickness=1,insertbackground="yellow")
         self.terminal.pack(fill=tk.BOTH, expand=True, padx=10, pady=(10, 5))
+        
+        self.user_terminal = tk.Text(right_frame, bg="#111", fg="white", font=("Consolas", 10), height=1,
+                                bd=0, highlightbackground="gray", highlightcolor="gray", highlightthickness=1,insertbackground="yellow")
+        self.user_terminal.pack(fill=tk.BOTH, expand=True, padx=10, pady=(10, 5))
 
         self.terminal_gif = GIFPlayer(right_frame, place_holder_gif)
         self.terminal_gif.place(relx=0.5, rely=0.25, anchor=tk.CENTER)  # Adjust vertically if needed
@@ -164,9 +168,13 @@ class SQLApp:
 
         self.graph_gif = GIFPlayer(self.graph_frame, place_holder_gif)
         self.graph_gif.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-        self.terminal.insert(tk.END, " 🍌_", "prompt")
-        self.terminal.insert(tk.END, "Write SQL or Banana Prompts here...\n", "info")
-
+        unlock_terminal(self)
+        self.terminal.insert(tk.END, "🍌_", "prompt")
+        self.terminal.insert(tk.END, "Banana logs appear here...\n", "info")
+        lock_terminal(self)
+        self.user_terminal.insert(tk.END, "🍌_", "prompt")
+        self.user_terminal.insert(tk.END, "Write SQL or Banana prompts here...\n", "info")
+        self.user_terminal.bind("<Return>", self.on_enter_pressed)
 
 
     def create_entry(self, parent, label_text, default_text="", show=None):
@@ -182,10 +190,13 @@ class SQLApp:
         return entry
 
     def connect_and_parse(self):
-        self.terminal.insert(tk.END, " 🍌_", "prompt")
+        unlock_terminal(self)
+        self.terminal.insert(tk.END, "🍌_", "prompt")
+        lock_terminal(self)
         host = self.host_entry.get()
         user = self.user_entry.get()
         password = self.pass_entry.get()
+        global database
         database = self.db_entry.get()
         self.terminal_gif.destroy()
 
@@ -201,7 +212,9 @@ class SQLApp:
                 if db and db[0] == database:
                     self.schema_gif.destroy()
                     self.graph_gif.destroy()
+                    unlock_terminal(self)
                     self.terminal.insert(tk.END, "Connection Successful!\n", "success")
+                    lock_terminal(self)
                 else:
                     pass
                 
@@ -212,7 +225,9 @@ class SQLApp:
             self.status_color = "red"
             self.status_text = "Failed"
             self.status_label.config(bg=self.status_color, text=self.status_text)
+            unlock_terminal(self)
             self.terminal.insert(tk.END, f"Database Connection Failed!\n\t> {e}\n", "error")
+            lock_terminal(self)
         self.terminal.see(tk.END)  
 
     def show_schema(self, cursor):
@@ -286,10 +301,70 @@ class SQLApp:
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+#===================================================================================user terminal
+    def on_enter_pressed(self, event):
+        # Prevent default newline behavior
+        self.user_terminal.mark_set("insert", "end")
+        self.user_terminal.see(tk.END)
+        self.execute_last_query()
+        self.user_terminal.insert(tk.END, "\n🍌_", "prompt")
+        return "break"  # prevents a new line from being inserted
+
+    def execute_last_query(self):
+        content = self.user_terminal.get("1.0", tk.END).strip().split("\n")
+        if not content:
+            return
+        last_line = content[-1].strip()
+        if not last_line.startswith("🍌_"):
+            unlock_terminal(self)
+            self.terminal.insert(tk.END, "❌ No SQL command found on last line.\n", "error")
+            lock_terminal(self)
+            return
+        query = last_line[len("🍌_"):].strip()
+
+        try:
+            if not database:
+                unlock_terminal(self)
+                self.terminal.insert(tk.END, "❌ Database name is required.\n", "error")
+                lock_terminal(self)
+                return
+            conn = my.connect(host=host, user=user, password=pwd, database=database)
+            cursor = conn.cursor()
+            cursor.execute(query)
+
+            # If it's a SELECT query
+            if query.lower().strip().startswith("select"):
+                rows = cursor.fetchall()
+                for row in rows:
+                    unlock_terminal(self)
+                    self.terminal.insert(tk.END, f"{row}\n", "info")
+                    lock_terminal(self)
+            else:
+                conn.commit()
+                unlock_terminal(self)
+                self.terminal.insert(tk.END, "✅ Query executed successfully.\n", "success")
+                lock_terminal(self)
+
+            cursor.close()
+            conn.close()
+
+        except my.Error as e:
+            unlock_terminal(self)
+            self.terminal.insert(tk.END, f"❌ Error: {e}\n", "error")
+            lock_terminal(self)
+        self.terminal.see(tk.END)
+        self.user_terminal.see(tk.END)
+
+def unlock_terminal(self):
+    self.terminal.config(state=tk.NORMAL)
+def lock_terminal(self):
+    self.terminal.config(state=tk.DISABLED)
 if __name__ == '__main__':
+    from db_config import host, user, pwd, database
     root = tk.Tk()
     app = SQLApp(root)
 # =================================================================================================== Set the terminal colors
     for _ in prompt_colors:
             app.terminal.tag_config(_, foreground=prompt_colors[_])
+            app.user_terminal.tag_config(_, foreground=prompt_colors[_])
     root.mainloop()

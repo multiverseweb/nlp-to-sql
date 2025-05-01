@@ -14,8 +14,7 @@ from setup import *                                                  # user defi
 
 #==========================================================================================================#
 
-banner='''
-====================================================================================
+banner='''====================================================================================
 =====  ====================================================  ============  ==  =====
 =====  ====================================================  ============  ==  =====
 =====  ====================================================  ============  ==  =====
@@ -66,9 +65,6 @@ class GIFPlayer(tk.Label):
 class SQLApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("NLP to SQL")
-        self.root.geometry("1000x700")
-        self.root.configure(bg="black")
         self.version = "v1.0"
         self.run = f"Run {update_runs()}"
         self.status_color = "yellow"
@@ -104,7 +100,7 @@ class SQLApp:
         logo_img = logo_img.resize((int(logo_img.width * (50 / logo_img.height)), 50), Image.Resampling.LANCZOS)
         self.logo_photo = ImageTk.PhotoImage(logo_img)
 
-        logo_label = tk.Label(topbar, image=self.logo_photo, bg="#111")
+        logo_label = tk.Label(topbar, image=self.logo_photo, bg="black")
         logo_label.pack(side=tk.LEFT, padx=10, pady=5)
 
         info = tk.Label(topbar, text=f"{self.version}  {self.run}", fg="white", bg="black", font=("Consolas", 10))
@@ -142,7 +138,7 @@ class SQLApp:
         guide=tk.Label(input_frame, text="<----------------------- Start here :D", bg="black", fg="white", font=("Consolas", 10))
         guide.grid(row=1, column=4, padx=5, sticky="w")
 
-        self.train_btn = tk.Button(input_frame, text="Train Infinity", command=self.connect_and_parse, bg="#222", fg="white", font=("Consolas", 10), bd=0)
+        self.train_btn = tk.Button(input_frame, text="Train Infinity", command=self.connect_and_parse, bg="#222", fg="white", font=("Consolas", 10), bd=0, cursor="hand2")
         self.train_btn.grid(row=0, column=4, rowspan=1, padx=10, sticky="w")
 
         # Main container frame
@@ -175,7 +171,7 @@ class SQLApp:
         self.user_terminal.pack(fill=tk.BOTH, expand=True, padx=10, pady=(10, 5))
 
         self.terminal_gif = GIFPlayer(right_frame, place_holder_gif)
-        self.terminal_gif.place(relx=0.5, rely=0.55, anchor=tk.CENTER)  # Adjust vertically if needed
+        self.terminal_gif.place(relx=0.5, rely=0.50, anchor=tk.CENTER)  # Adjust vertically if needed
 
         # Bar Graph Frame in bottom-right
         self.graph_frame = tk.Frame(right_frame, bg="#111", highlightbackground="gray", highlightthickness=1, height=150)
@@ -380,9 +376,41 @@ def unlock_terminal(self):
     self.terminal.config(state=tk.NORMAL)
 def lock_terminal(self):
     self.terminal.config(state=tk.DISABLED)
+def start_move(event):
+    root.x = event.x
+    root.y = event.y
+
+def do_move(event):
+    x = root.winfo_pointerx() - root.x
+    y = root.winfo_pointery() - root.y
+    root.geometry(f'+{x}+{y}')
+
+def close_window():
+    root.destroy()
+
 if __name__ == '__main__':
     from db_config import host, user, pwd, database
     root = tk.Tk()
+    root.title("Banana SQL")
+    root.geometry("1200x700+100+100")
+    root.configure(bg="black")
+    root.attributes('-alpha', 0.85)  # Set transparency
+    root.overrideredirect(True)
+
+    title_bar = tk.Frame(root, bg="#101010", relief="raised", bd=0, height=10, cursor="fleur")
+    title_bar.pack(fill='both', side='top')
+
+    # Title
+    title_label = tk.Label(title_bar, text="Banana SQL", bg="#101010", fg="white", font=("Segoe UI", 10, "bold"))
+    title_label.pack(side="left", padx=10)
+
+    # Move window
+    title_bar.bind("<ButtonPress-1>", start_move)
+    title_bar.bind("<B1-Motion>", do_move)
+
+    # Minimize and close buttons
+    btn_close = tk.Button(title_bar, text="X", bg="red", fg="white", borderwidth=0, command=close_window,width=5, cursor="hand2")
+    btn_close.pack(side="right")
     app = SQLApp(root)
 # =================================================================================================== Set the terminal colors
     for _ in prompt_colors:

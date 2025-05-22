@@ -65,8 +65,7 @@ class GIFPlayer(tk.Label):
 class SQLApp:
     def __init__(self, root):
         self.root = root
-        self.version = "v1.0"
-        self.run = f"Run {update_runs()}"
+        self.version = f"v1.{str(update_runs())[:1]}.{str(update_runs())[1:]}"
         self.status_color = "yellow"
         self.status_text = "Banana"
 
@@ -103,7 +102,7 @@ class SQLApp:
         logo_label = tk.Label(topbar, image=self.logo_photo, bg="black")
         logo_label.pack(side=tk.LEFT, padx=10, pady=5)
 
-        info = tk.Label(topbar, text=f"{self.version}  {self.run}", fg="white", bg="black", font=("Consolas", 10))
+        info = tk.Label(topbar, text=f"{self.version}", fg="white", bg="black", font=("Consolas", 10))
         info.pack(side=tk.RIGHT, padx=10)
 
         self.status_label = tk.Label(topbar, text=self.status_text, fg="black", bg=self.status_color, font=("Consolas", 10, "bold"))

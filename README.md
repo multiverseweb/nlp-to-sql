@@ -17,6 +17,70 @@
 
 ---
 
+## Architecture Pipeline
+
+```mermaid
+flowchart LR
+    subgraph User Interaction
+        User[User Query] --> Input[Natural Language Prompt]
+    end
+
+    subgraph NLP Engine
+        Input --> Parser[NLP Query Tokenizer]
+        Parser --> Schema[Database Schema Injector]
+        Schema --> LLM[SQL Translation Model]
+    end
+
+    subgraph Execution & Validation
+        LLM --> SQL[Generated SQL Query]
+        SQL --> Validator[Syntax & Safety Validator]
+        Validator --> DB[(Connected SQL Database)]
+        DB --> Result[Formatted Result Set]
+    end
+
+    Result --> Display[Glassmorphism UI / Terminal Output]
+```
+
+## Installation & Setup
+
+### Prerequisites
+- Python 3.8+
+- Active SQL Database (MySQL, PostgreSQL, or SQLite)
+
+### 1. Clone & Navigate
+```bash
+git clone https://github.com/multiverseweb/nlp-to-sql.git
+cd nlp-to-sql
+```
+
+### 2. Install Dependencies
+```bash
+pip install -r documentation/installation/requirements.txt
+```
+
+### 3. Configure Database Connection
+Edit `app/src/db_config.py` with your database credentials:
+```python
+DB_HOST = "localhost"
+DB_USER = "your_username"
+DB_PASSWORD = "your_password"
+DB_NAME = "your_database"
+```
+
+### 4. Launch Application
+```bash
+python app/src/main.py
+```
+
+## Sample Usage
+
+| Natural Language Input | Generated SQL Query |
+|---|---|
+| *"Show all customers from New York"* | `SELECT * FROM customers WHERE city = 'New York';` |
+| *"Find total sales by product category in 2024"* | `SELECT category, SUM(amount) FROM sales WHERE year = 2024 GROUP BY category;` |
+| *"List top 5 highest order totals"* | `SELECT * FROM orders ORDER BY total_amount DESC LIMIT 5;` |
+
+---
 
 | Initial Screen |
 |-|
@@ -33,6 +97,4 @@
 |-|
 | ![](https://github.com/multiverseweb/nlp-to-sql/blob/main/documentation/images/failure.png?raw=true) |
 
-```
-
-```
+</details>
